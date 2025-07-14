@@ -9,19 +9,30 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import json
 from pathlib import Path
-
+from pickle import TRUE
 from decouple import config, UndefinedValueError
-
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+DEBUG = config('DEBUG', default=TRUE, cast=bool)
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    try:
+        CORS_ALLOWED_ORIGINS = json.loads(config("CORS_ALLOWED_ORIGINS", default='["http://localhost:3000"]'))  # type: ignore
+    except UndefinedValueError as e:
+        raise Exception(f"🚨 Missing environment variable: {e}")
+    except json.JSONDecodeError:
+        raise ImproperlyConfigured("🚨 CORS_ALLOWED_ORIGINS must be a valid JSON list string.")
 try:
     SECRET_KEY = config("SECRET_KEY")
     DEBUG = config("DEBUG") == "True"
@@ -29,10 +40,8 @@ try:
 except UndefinedValueError as e:
     raise Exception(f"🚨 Missing environment variables: {e}")
 
-
-# Application definition
-
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +53,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
