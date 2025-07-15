@@ -6,7 +6,7 @@ signer = TimestampSigner()
 
 def send_magic_link(user):
     token = signer.sign(user.pk)
-    link = f"{settings.FRONTEND_URL}/auth/magic?token={token}"
+    link = f"{settings.FRONTEND_URL}/auth/magic-link?token={token}"
 
     try:
         send_mail(

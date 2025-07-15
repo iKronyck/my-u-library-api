@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Book, CustomUser
-from .serializers import BookSerializer, UserRegistrationSerializer
+from .serializers import BookSerializer, UserRegistrationSerializer, UserSerializer
 from .utils import send_magic_link
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -31,9 +31,12 @@ class MagicLoginView(APIView):
             user = CustomUser.objects.get(pk=user_id)
 
             refresh = RefreshToken.for_user(user)
+            user_serializer = UserSerializer(user)
+
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
+                "user": user_serializer.data
             })
 
         except (BadSignature, SignatureExpired):
