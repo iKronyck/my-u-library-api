@@ -59,4 +59,77 @@ class CustomUser(AbstractUser):
         return f"{self.email} ({self.role})"
 
 
+class BookLoan(models.Model):
+    LOAN_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('returned', 'Returned'),
+        ('overdue', 'Overdue'),
+        ('lost', 'Lost'),
+    )
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='loans')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='loans')
+    loan_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    return_date = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=LOAN_STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Book Loan"
+        verbose_name_plural = "Book Loans"
+        ordering = ['-loan_date']
+
+    def __str__(self):
+        return f"{self.book.title} - {self.user.email} ({self.status})"
+
+    def is_overdue(self):
+        """Check if the loan is overdue"""
+        from django.utils import timezone
+        return self.status == 'active' and timezone.now() > self.due_date
+
+    def update_status(self):
+        """Update loan status based on current date and due date"""
+        from django.utils import timezone
+        now = timezone.now()
+
+        if self.status == 'active' and now > self.due_date:
+            self.status = 'overdue'
+            self.save()
+        return self.status
+
+    def return_book(self):
+        """Mark book as returned and update stock"""
+        from django.utils import timezone
+
+        # Verificar si está vencido
+        is_late = timezone.now() > self.due_date
+
+        self.status = 'returned'
+        self.return_date = timezone.now()
+        self.save()
+
+        # Aumentar stock del libro
+        self.book.stock_quantity += 1
+        self.book.save()
+
+        return {
+            'status': 'returned',
+            'is_late': is_late,
+            'days_late': (timezone.now() - self.due_date).days if is_late else 0
+        }
+
+    def mark_as_lost(self):
+        """Mark book as lost"""
+        self.status = 'lost'
+        self.save()
+        return {'status': 'lost'}
+
+
 
