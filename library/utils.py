@@ -1,6 +1,6 @@
 from django.core.signing import TimestampSigner
 from django.conf import settings
-import resend
+from django.core.mail import send_mail
 
 signer = TimestampSigner()
 
@@ -8,13 +8,13 @@ def send_magic_link(user):
     token = signer.sign(user.pk)
     link = f"{settings.FRONTEND_URL}/auth/magic?token={token}"
 
-    resend.api_key = settings.RESEND_API_KEY
     try:
-        r = resend.Emails.send({
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": user.email,
-            "subject": "Welcome to My U Library",
-            "html": f"""
+        send_mail(
+            subject="Welcome to My U Library",
+            message=f"Click on the following link to access your account: {link}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <p>Hello {user.first_name},</p>
                 <p>Click on the following button to access your account:</p>
@@ -31,9 +31,9 @@ def send_magic_link(user):
                 </p>
             </div>
             """
-        })
-        print(f"Email sent successfully to {user.email} using Resend")
+        )
+        print(f"Email sent successfully to {user.email}")
         return True
     except Exception as e:
-        print(f"Error sending email with Resend: {str(e)}")
+        print(f"Error sending email: {str(e)}")
         return False
