@@ -15,6 +15,9 @@ from pickle import TRUE
 from decouple import config, UndefinedValueError
 from django.core.exceptions import ImproperlyConfigured
 
+AUTH_USER_MODEL = 'library.CustomUser'
+# AUTH_USER_MODEL = 'users.User'
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -50,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'library',
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -118,6 +122,19 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+RESEND_API_KEY = config('RESEND_API_KEY')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='onboarding@resend.dev')
+
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 
 # Internationalization
