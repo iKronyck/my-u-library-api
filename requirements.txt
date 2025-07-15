@@ -1,8 +1,8 @@
-asgiref==3.9.1
 Django==5.2.4
 psycopg2-binary==2.9.10
 python-decouple==3.8
-python-dotenv==1.1.1
-sqlparse==0.5.3
 djangorestframework==3.16.0
 django-cors-headers==4.7.0
+djangorestframework-simplejwt==5.5.0
+PyJWT==2.9.0
+resend==2.11.0
