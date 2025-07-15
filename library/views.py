@@ -51,3 +51,7 @@ class ResendMagicLinkView(APIView):
             return Response({'message': 'Magic link reenviado'}, status=200)
         except get_user_model().DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
