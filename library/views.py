@@ -27,7 +27,7 @@ class MagicLoginView(APIView):
         token = request.query_params.get('token')
         signer = TimestampSigner()
         try:
-            user_id = signer.unsign(token, max_age=3600)
+            user_id = signer.unsign(token, max_age=2592000)
             user = CustomUser.objects.get(pk=user_id)
 
             refresh = RefreshToken.for_user(user)
